@@ -1,0 +1,44 @@
+# If secret named `cos-secret` does not already exist, create one with HMAC creds to access COS bucket
+  # oc create -f <cos-secret.yaml>
+# create or update the configmap and change parameters as desired 
+  # oc create/apply -f <backup-configmap.yaml>
+# Create cronjob
+ # oc create -f <backup-cronjob.yaml>
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: neo4j-backup
+  labels:
+    app: neo4j-backup
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: "Forbid" # forbids concurrent runs, skipping the next run if the previous has not finished yet.
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata: 
+         labels:
+          app: neo4j-backup
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: neo4j-backup
+              image: <backup-docker-image-location>
+              # command: [ "/bin/bash", "-c", "--" ]
+              # args: [ "while true; do sleep 30; done;" ]
+              imagePullPolicy: Always
+              envFrom:
+              - configMapRef:
+                 name: backup-config
+              env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    key: access_key_id
+                    name: cos-secret 
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: secret_access_key
+                    name: cos-secret 

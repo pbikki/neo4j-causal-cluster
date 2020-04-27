@@ -1,0 +1,19 @@
+# change parameters as desired from the configmap below
+# oc apply -f backup-configmap.yaml>
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: backup-config
+data:
+  NEO4J_ADDR: <pod-name>.<subdomain>.<namespace>.svc.cluster.local:6362
+  BACKUP_NAME: graph.db-backup
+  BUCKET: s3://<bucket-name>
+  HEAP_SIZE: 4G
+  PAGE_CACHE: 4G
+  COS_ENDPOINT: https://<cos-bucket-endpoint>
+
+
+
+
+

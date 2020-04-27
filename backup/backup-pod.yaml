@@ -1,0 +1,35 @@
+# If secret named `cos-secret` does not already exist, create one with HMAC creds to access COS bucket
+# oc create -f <cos-secret.yaml>
+# change parameters as desired from the configmap
+# oc apply -f <backup-pod.yaml>
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backup-test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: neo4j-backup-test
+      image: <backup-docker-image-location>
+      # command: [ "/bin/bash", "-c", "--" ]
+      # args: [ "while true; do sleep 30; done;" ]
+      imagePullPolicy: Always
+      envFrom:
+      - configMapRef:
+         name: backup-config
+      env:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            key: access_key_id
+            name: cos-secret 
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: secret_access_key
+            name: cos-secret 
+
+
+
+
