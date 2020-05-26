@@ -1,6 +1,6 @@
 # Creating neo4j backups 
 
-The docker image is created for performing neo4j database backups. The entrypoint script runs a backup command on the neo4j deployment (address supplied through env vars or configmap (if running on kube)); compresses the backup directory; and stores the file in COS bucket (cos bucket details supplied)
+The docker image is created for performing neo4j database backups. The entrypoint script `s3-backup-v3.5.sh` runs a backup command on the neo4j deployment (address supplied through env vars or configmap (if running on kube)); compresses the backup directory; and stores the file in COS bucket (cos bucket details supplied)
 
 ```
 ├── Dockerfile
@@ -23,7 +23,7 @@ The docker image is created for performing neo4j database backups. The entrypoin
 - [How to backup Neo4j Running in Kubernetes](https://medium.com/neo4j/how-to-backup-neo4j-running-in-kubernetes-3697761f229a)
 
 
-## Building the backup image
+## Building the backup image 
 ```
 ▶ docker build -t custom-neo4j-db-backup .
 

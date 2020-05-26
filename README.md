@@ -57,6 +57,37 @@ authEnabled: true
 ## Defaults to a random 10-character alphanumeric string if not set and authEnabled is true
 # neo4jPassword:
 ```
+- (Optional) Note the parameters in `cores`. Change the number of cores, size of the volumes being mounted and storage class if required
+  ```
+  # Cores
+  core:
+    numberOfServers: 3
+    persistentVolume:
+      ## whether or not persistence is enabled
+      ##
+      enabled: true
+
+      ## core server data Persistent Volume mount root path
+      ##
+      mountPath: /data
+
+      ## core server data Persistent Volume size
+      ##
+      size: 30Gi
+
+      ## core server data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      storageClass: "ibmc-block-gold"
+
+      ## Subdirectory of core server data Persistent Volume to mount
+      ## Useful if the volume's root directory is not empty
+      ##
+      ## subPath: ""
+  ```
 - (Optional) Create a custom storage class according to you requirements 
 ```
 ▶ oc create -f custom-storageclass.yaml 
@@ -123,6 +154,51 @@ storageClass: "ibmc-block-gold"
   ```
 
 ## Verification
+- All core pods must be in `Running` state eventually
+- Check the pod logs and initContainer logs
+  ```
+  ▶ oc logs -f `pod-name`
+  ```
+  ```
+  ▶ oc logs -f `pod-name` -c `container-name`
+  ```
+  If the casual is successfully formed, the last few lines of the logs like below will be seen on all cores
+  ```
+  2020-04-25 02:49:24.362+0000 INFO  This instance bootstrapped the cluster.
+  2020-04-25 02:49:54.725+0000 INFO  Waiting to hear from leader...
+  2020-04-25 02:50:22.726+0000 INFO  Waiting to hear from leader...
+  2020-04-25 02:50:50.728+0000 INFO  Waiting to catchup with leader... we are 0 entries behind leader at 2.
+  2020-04-25 02:50:50.729+0000 INFO  Successfully joined the Raft group.
+  2020-04-25 02:50:50.818+0000 INFO  Sending metrics to CSV file at /var/lib/neo4j/metrics
+  2020-04-25 02:50:51.537+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+  2020-04-25 02:50:53.834+0000 WARN  Server thread metrics not available (missing neo4j.server.threads.jetty.all)
+  2020-04-25 02:50:53.835+0000 WARN  Server thread metrics not available (missing neo4j.server.threads.jetty.idle)
+  2020-04-25 02:50:53.961+0000 INFO  Started.
+  2020-04-25 02:50:54.287+0000 INFO  Mounted REST API at: /db/manage
+  2020-04-25 02:50:54.387+0000 INFO  Server thread metrics have been registered successfully
+  2020-04-25 02:50:55.453+0000 INFO  Remote interface available at http://test-neo4j-core-0.test-neo4j.demo.svc.cluster.local:7474/
+  ```
 
 
 ## Deletion
+
+- Executing the below command will delete the neo4j cluster (deployment, statefulset, any secrets created by the helm install and eventually the pods). Be absoluetly sure before executing it
+  ```
+  ▶ helm uninstall test
+  ```
+- PVCs might have to be deleted manually
+
+  Check for pvcs created by the helm install and delete them carefully
+
+  ```
+  ▶ oc get pvc
+  NAME                           STATUS    VOLUME                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+  datadir-test-neo4j-core-0   Bound     pvc-6938cd51-a040-467c-a1cc0   30Gi       RWO            ibmc-block-gold               19d
+  datadir-test-neo4j-core-1   Bound     pvc-467719e4-b022-489e-bb65   30Gi       RWO            ibmc-block-gold               19d
+  datadir-test-neo4j-core-2   Bound     pvc-cebe88b4-8a39-4cc2-8497   30Gi       RWO            ibmc-block-gold               19d
+  ```
+- Delete each pvc. Make sure to delete only the PVCs create by the helm chart you are trying to uninstall
+  ```
+  ▶ oc delete pvc <pvc-name>
+  ```
+

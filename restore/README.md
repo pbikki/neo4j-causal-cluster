@@ -1,6 +1,6 @@
 # Neo4j restore container 
 
-The docker image is created for performing neo4j restore. This container is often used in as an initContainer during the neo4j causal cluster deployment to restore the data from a backup onto all the cores before starting the neo4j server
+The docker image is created for performing neo4j restore. This image can be used in an initContainer during the neo4j causal cluster deployment to restore the data from a backup onto all the cores before starting the neo4j server
 
 ```
 ├── Dockerfile
@@ -46,7 +46,12 @@ Push image to IBM CR
     - REMOTE_BACKUP_FILE: s3://<bucket-name>/<backup-file>
     - FORCE_OVERWRITE: "true"
     ```
-   
+    Setting `FORCE_OVERWRITE: "true"` wipes out the current database and overwrites it with the new backup
+    ```
+    # CAUTION: Read documentation before proceeding with this flag.
+    - name: FORCE_OVERWRITE
+      value: "true"
+    ```
 
 - Create a pod for testing restore
     ```
